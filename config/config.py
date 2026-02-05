@@ -8,10 +8,13 @@ class Settings:
         self.VERSION = os.getenv("VERSION")
         self.ACCOUNT = os.getenv("ACCOUNT")
         self.APP_NAME = os.getenv("APP_NAME")
+
         self.HOST = os.getenv("HOST")
+        self.URL_AGENT = os.getenv("URL_AGENT")
         self.PORT = os.getenv("PORT")
-        self.WINDOW_SIZE = int(os.getenv("WINDOW_SIZE")) 
         self.SESSION_TIMEOUT = int(os.getenv("SESSION_TIMEOUT")) 
+        self.WINDOW_SIZE = int(os.getenv("WINDOW_SIZE")) 
+
         self.OTEL_EXPORTER_OTLP_ENDPOINT = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
         self.OTEL_STDOUT_LOG_GROUP = os.getenv("OTEL_STDOUT_LOG_GROUP", "false").lower() == "true"

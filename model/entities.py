@@ -11,10 +11,15 @@ class Tenant(BaseModel):
 
 class Stat(BaseModel):
     distribution_type: Optional[str] = None
-    confidence: Optional[float] = None
-    std: Optional[float] = None
     mean: Optional[float] = None
-    variance: Optional[float] = None
-    max: Optional[float] = None
+    std: Optional[float] = None
+
+    range: Optional[float] = None
+    p95: Optional[float] = None
+    mad: Optional[float] = None
+    n_slope: Optional[float] = None
+    autocorr: Optional[float] = None
+
     min: Optional[float] = None
+    max: Optional[float] = None
     population: Optional[float] = None

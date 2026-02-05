@@ -1,16 +1,13 @@
 import logging
-import os
 import time
 
 from log.logger import setup_logger
 from tracing.tracer import setup_tracer
 
 from agent import StatisticInferenceAgent
-from a2a.agent_card import AGENT_CARD
 from a2a.envelope import A2AEnvelope
 from config.config import settings
 from exception.exceptions import A2ARouterError
-from config.config import settings
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -98,7 +95,7 @@ def agent_card():
         """Get application agent card information."""
         logger.info("func.get_agent_card()")
         
-        return AGENT_CARD
+        return agent.capabilities
     
 @app.post("/a2a/message")
 def handle_message(envelope: A2AEnvelope):

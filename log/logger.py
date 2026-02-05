@@ -21,10 +21,10 @@ class JsonFormatter(logging.Formatter):
 
         log_entry = {
             "level": record.levelname.lower(),
+            "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "component": record.name,
             "request-id":  REQUEST_ID_CTX.get(),
             "message": message,
-            "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
 
         return json.dumps(log_entry)

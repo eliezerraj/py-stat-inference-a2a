@@ -3,8 +3,7 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import StatusCode, Status 
 
 from exception.exceptions import A2ARouterError
-from a2a import envelope
-from handlers.ingest import handler_ingest, handler_get_data
+from handlers.agent import handler_compute_stat
 
 #---------------------------------
 # Configure logging
@@ -21,10 +20,8 @@ class A2ARouter:
             logger.info("def.route()")  
 
             try:
-                if envelope.message_type == "STAT_TPS":
-                    return handler_ingest(envelope.payload)
-                elif envelope.message_type == "LIST_TPS":
-                    return handler_get_data(envelope.payload)
+                if envelope.message_type == "COMPUTE_STAT":
+                    return handler_compute_stat(envelope.payload)
                 else:
                     message = f"Unsupported message type: {envelope.message_type}"
                     e = A2ARouterError(message)
