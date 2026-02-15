@@ -1,14 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class Tenant(BaseModel):
-    id: str
-    tps: int
-    timestamp: Optional[str] = None
-    message: Optional[str] = None
-    window_size: Optional[int] = None
-    stat: Optional['Stat'] = None
-
 class Stat(BaseModel):
     distribution_type: Optional[str] = None
     mean: Optional[float] = None

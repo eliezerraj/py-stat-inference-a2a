@@ -137,7 +137,7 @@ It answers:
 
     curl --location 'http://localhost:8000/.well-known/agent.json'
 
-    curl --location 'http://localhost:8000/.well-known/agent.json'
+    curl --location 'http://localhost:8000/agent_card_register'
 
     curl --location 'http://localhost:8000/a2a/message' \
         --header 'Content-Type: application/json' \
