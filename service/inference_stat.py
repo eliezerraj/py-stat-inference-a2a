@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 #---------------------------------
 # Compute Statistical Metrics
 
+# Calculate slope of the time series data Linear regression to find the slope of the data points
 def calc_slope(tps):
     x = np.arange(len(tps))
     slope, _ = np.polyfit(x, tps, 1)
@@ -24,19 +25,25 @@ def calc_normalized_slope(tps):
     slope = calc_slope(tps)
     return slope / (np.mean(tps) + 1e-6)
 
+def calc_fano_factor(tps):
+    mean = np.mean(tps)
+    variance = np.var(tps, ddof=1)  
+    return variance / (mean + 1e-6)
+
 def compute_stat(list_values: list) -> dict:
     with tracer.start_as_current_span("service.compute_stat"):
         logger.info("def.compute_stat()")    
         logger.debug("values %s: ", list_values)
 
         if not list_values:
-            logger.warning("No values provided for statistical computation.")
+            logger.warning("No values enough provided for statistical computation.")
             return Stat()
 
         # Ensure we operate on a float numpy array
         tps_values = np.array(list_values, dtype=float)
         n = tps_values.size
 
+        #Calculate mean
         mean = float(np.mean(tps_values))
 
         # Use sample variance when possible, otherwise 0.0 for single value
@@ -49,9 +56,14 @@ def compute_stat(list_values: list) -> dict:
 
         data_stat = Stat()
 
+        data_stat.fano_factor = float(calc_fano_factor(tps_values))
+
+        print(f"Mean: {mean}, Stddev: {stddev}, Fano Factor: {data_stat.fano_factor}")
         # Determine distribution type safely
-        if mean != 0.0:
-            if stddev < mean * 0.1:
+        if mean > 0:
+            if 0.9 < data_stat.fano_factor < 1.1:
+                data_stat.distribution_type = "poisson"
+            elif stddev < mean * 0.1:
                 data_stat.distribution_type = "normal"
             elif stddev < mean * 0.5:
                 data_stat.distribution_type = "uniform"
@@ -94,6 +106,7 @@ def compute_stat(list_values: list) -> dict:
     
         data_stat.min = float(np.min(tps_values))
         data_stat.max = float(np.max(tps_values))
-        data_stat.population = float(np.sum(tps_values))
-
+        data_stat.sum = float(np.sum(tps_values))
+        data_stat.population = float(n)
+        
         return data_stat

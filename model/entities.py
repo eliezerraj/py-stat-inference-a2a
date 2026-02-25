@@ -11,7 +11,9 @@ class Stat(BaseModel):
     mad: Optional[float] = None
     n_slope: Optional[float] = None
     autocorr: Optional[float] = None
+    fano_factor: Optional[float] = None
 
     min: Optional[float] = None
     max: Optional[float] = None
+    sum: Optional[float] = None
     population: Optional[float] = None
