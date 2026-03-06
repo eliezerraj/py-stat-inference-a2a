@@ -5,17 +5,14 @@ py-stat-inference-a2a
 # Features
 
 ### Range
-
 It answers:
-“How far did the system swing between best and worst case?”
+“How far did the tps swing between best and worst case?”
 
     Example
     A = [9, 9, 9, 9, 9]
     B = [9, 9, 9, 9, 15]   # throttle
 
     Metric	A	B
-    Mean	9	9.8
-    Std	    0	2.4
     Range	0	6
 
 ### P95
@@ -32,11 +29,11 @@ It answers:
     B	9.4	    3.1	    15
     C	10.2	3.6	    15
 
+    Interpretation:
     STD struggles to separate B vs C.
     p95 immediately says: “Both hit the ceiling
 
 ### MAD
-
 it answers:
 “On average, how far is TPS from its typical value?”
 
@@ -51,7 +48,6 @@ it answers:
     W3	    1.6	    0.64
 
     Interpretation:
-    
     With STD:
     W2 and W3 look equally unstable
 
@@ -66,9 +62,7 @@ it answers:
 
 ### N_SLOPE
 
-It answers:
-
-“How fast is TPS changing relative to its level?”
+It answers: “How fast is TPS changing relative to its level?”
 
     Example
     TPS = [8, 9, 10, 11, 12]
@@ -78,6 +72,18 @@ It answers:
 
     Interpretation:
     TPS grows ~10% per step
+
+### FANO FACTOR
+
+It answers: “Regardless of size, how errtic is the behavior ?”
+
+    Example
+    TPS = [19, 12, 13, 21, 10, 20]
+    fano factor = 0.71
+    Interpretation:
+    F<1 they are smoothes traffic (safe)
+    F~1 they are the standart
+    F>2 they are very erratic burst traffic (risky) 
 
 ### AUTO_CORRELATION
 
