@@ -1,5 +1,16 @@
-from pydantic import BaseModel
+import math
 from typing import Optional
+
+from pydantic import BaseModel, Field
+
+
+class StatRequest(BaseModel):
+    data: list[float] = Field(min_length=1)
+
+    def ensure_finite(self) -> "StatRequest":
+        if any(not math.isfinite(value) for value in self.data):
+            raise ValueError("data must contain only finite numeric values")
+        return self
 
 class Stat(BaseModel):
     distribution_type: Optional[str] = None

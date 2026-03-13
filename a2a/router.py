@@ -1,9 +1,10 @@
 import logging
+
+from shared.exception.exceptions import A2ARouterError
+from infrastructure.adapter.handler import handler_compute_stat
+
 from opentelemetry import trace
 from opentelemetry.sdk.trace import StatusCode, Status 
-
-from exception.exceptions import A2ARouterError
-from handlers.agent import handler_compute_stat
 
 #---------------------------------
 # Configure logging
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class A2ARouter:
     
     def route(self, envelope):
-        with tracer.start_as_current_span("a2a.route") as span:
+        with tracer.start_as_current_span("a2a.router.route") as span:
             logger.info("def.route()")  
 
             try:
@@ -30,9 +31,11 @@ class A2ARouter:
             except A2ARouterError as e:
                 span.record_exception(e)
                 span.set_status(Status(StatusCode.ERROR, str(e)))
-                logger.error("Error clustering data", exc_info=e)
+                logger.error("Error A2ARouterError message", exc_info=e)
                 raise e
 
             except Exception as e:
-                logger.error("Error clustering data", exc_info=e)
+                span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR, str(e)))
+                logger.error("Error uncaugth Exception", exc_info=e)
                 raise e

@@ -1,9 +1,9 @@
 import logging
-from opentelemetry import trace
-
 import numpy as np
 
-from model.entities import Stat
+from domain.model.entities import Stat
+
+from opentelemetry import trace
 
 #---------------------------------
 # Configure logging
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 #---------------------------------
 # Compute Statistical Metrics
-
+#---------------------------------
 # Calculate slope of the time series data Linear regression to find the slope of the data points
 def calc_slope(tps):
     x = np.arange(len(tps))
@@ -26,12 +26,23 @@ def calc_normalized_slope(tps):
     return slope / (np.mean(tps) + 1e-6)
 
 def calc_fano_factor(tps):
+    if tps.size < 2:
+        return 0.0
+
     mean = np.mean(tps)
-    variance = np.var(tps, ddof=1)  
+    if np.isclose(mean, 0.0):
+        return 0.0
+
+    variance = np.var(tps, ddof=1)
     return variance / (mean + 1e-6)
 
-def compute_stat(list_values: list) -> dict:
-    with tracer.start_as_current_span("service.compute_stat"):
+
+def calc_median_absolute_deviation(tps):
+    median = np.median(tps)
+    return float(np.median(np.abs(tps - median)))
+
+def compute_stat(list_values: list[float]) -> Stat:
+    with tracer.start_as_current_span("domain.service.inference_stat.compute_stat"):
         logger.info("def.compute_stat()")    
         logger.debug("values %s: ", list_values)
 
@@ -58,7 +69,13 @@ def compute_stat(list_values: list) -> dict:
 
         data_stat.fano_factor = float(calc_fano_factor(tps_values))
 
-        print(f"Mean: {mean}, Stddev: {stddev}, Fano Factor: {data_stat.fano_factor}")
+        logger.debug(
+            "computed distribution inputs mean=%s std=%s fano_factor=%s",
+            mean,
+            stddev,
+            data_stat.fano_factor,
+        )
+
         # Determine distribution type safely
         if mean > 0:
             if 0.9 < data_stat.fano_factor < 1.1:
@@ -77,7 +94,7 @@ def compute_stat(list_values: list) -> dict:
 
         data_stat.range = float(np.max(tps_values) - np.min(tps_values))
         data_stat.p95 = float(np.percentile(tps_values, 95))
-        data_stat.mad = float(np.mean(np.abs(tps_values - mean)))
+        data_stat.mad = calc_median_absolute_deviation(tps_values)
 
         # Normalized slope: guarded for small arrays and non-finite results
         if n > 1:

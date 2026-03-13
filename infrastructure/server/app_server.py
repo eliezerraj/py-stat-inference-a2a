@@ -1,17 +1,20 @@
 import logging
 import time
+from uuid import uuid4
 
-from log.logger import setup_logger
-from tracing.tracer import setup_tracer
+from shared.log.logger import setup_logger, REQUEST_ID_CTX
+from shared.tracing.tracer import setup_tracer
+from shared.exception.exceptions import A2ARouterError
 
-from agent import StatisticInferenceAgent
+from agent import AgentImplementation
 from a2a.envelope import A2AEnvelope
-from config.config import settings
-from exception.exceptions import A2ARouterError
 
-from fastapi import FastAPI
+from infrastructure.config.config import settings
+
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi import status
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from contextlib import asynccontextmanager
 
@@ -23,18 +26,11 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 #---------------------------------
 # Initialize variables from environment
 #---------------------------------
+
 print("---" * 15)
-print(f"VERSION: {settings.VERSION}")
-print(f"ACCOUNT: {settings.ACCOUNT}")
-print(f"APP_NAME: {settings.APP_NAME}")
-print(f"HOST: {settings.HOST}")
-print(f"PORT: {settings.PORT}")
-print(f"WINDOW_SIZE: {settings.WINDOW_SIZE}")
-print(f"SESSION_TIMEOUT: {settings.SESSION_TIMEOUT}")
-print(f"OTEL_EXPORTER_OTLP_ENDPOINT: {settings.OTEL_EXPORTER_OTLP_ENDPOINT}")
-print(f"LOG_LEVEL: {settings.LOG_LEVEL}")
-print(f"OTEL_STDOUT_LOG_GROUP: {settings.OTEL_STDOUT_LOG_GROUP}")
-print(f"LOG_GROUP: {settings.LOG_GROUP}")
+print("Starting application with the following settings:")
+for key, value in vars(settings).items():
+    print(f"{key}: {value}")
 print("---" * 15)
 
 #---------------------------------
@@ -42,6 +38,25 @@ print("---" * 15)
 #---------------------------------
 setup_logger(settings.LOG_LEVEL, settings.APP_NAME, settings.OTEL_STDOUT_LOG_GROUP, settings.LOG_GROUP)
 logger = logging.getLogger(__name__)
+
+# Middleware to extract headers and add to request.state for tracing and logging
+class MiddlewareHeaderContext(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+
+        request_id = request.headers.get("x-request-id") or str(uuid4())
+        authorization = request.headers.get("authorization")
+
+        request_id_token = REQUEST_ID_CTX.set(request_id)
+
+        request.state.request_id = request_id
+        request.state.authorization = authorization
+        
+        try:
+            response = await call_next(request)
+            response.headers["x-request-id"] = request_id
+            return response
+        finally:
+            REQUEST_ID_CTX.reset(request_id_token)
 
 # ---------------------------------
 # Lifespan (startup/shutdown)
@@ -65,6 +80,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+app.add_middleware(MiddlewareHeaderContext)
 
 #---------------------------------
 # Configure tracer
@@ -76,7 +92,7 @@ tracer = trace.get_tracer(__name__)
 FastAPIInstrumentor.instrument_app(app)
 RequestsInstrumentor().instrument()
 
-agent = StatisticInferenceAgent()
+agent = AgentImplementation()
 
 # ---------------------------------------------------------------
 # methods memory
@@ -98,24 +114,29 @@ def agent_card():
         return agent.capabilities
     
 @app.post("/a2a/message")
-def handle_message(envelope: A2AEnvelope):
-    with tracer.start_as_current_span("controller.handle_message") as span:
+def handle_a2a_message(envelope: A2AEnvelope, request: Request):
+    with tracer.start_as_current_span("infrastructure.server.handle_a2a_message") as span:
         """Handle an A2A message."""
-        logger.info("func.handle_message()")
-    
+        request_id = getattr(request.state, "request_id", "unknown")
+        has_authorization = bool(getattr(request.state, "authorization", None))
+
+        span.set_attribute("request.id", request_id)
+        span.set_attribute("request.has_authorization", has_authorization)
+        logger.info("func.handle_a2a_message() request_id=%s has_authorization=%s", request_id, has_authorization)
+
         try:
             result = agent.receive(envelope)
             span.set_status(Status(StatusCode.OK))
             return result
-    
+
         except A2ARouterError as e:
             span.record_exception(e)
             span.set_status(Status(StatusCode.ERROR, str(e)))
-            logger.warning(f"Bad request: {e}")
+            logger.warning(f"Bad request from A2ARouterError: {e}")
             return JSONResponse(content={"message": str(e)}, status_code=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             span.record_exception(e)
             span.set_status(Status(StatusCode.ERROR, str(e)))
-            logger.error(f"Error handling message: {e}")
+            logger.error(f"Error uncaught exception: {e}")
             return JSONResponse(content={"message": str(e)}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
