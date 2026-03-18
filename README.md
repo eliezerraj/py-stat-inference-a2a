@@ -75,7 +75,7 @@ It answers: “How fast is TPS changing relative to its level?”
 
 ### FANO FACTOR
 
-It answers: “Regardless of size, how errtic is the behavior ?”
+It answers: “Regardless of size, how erratic is the behavior ?”
 
     Example
     TPS = [19, 12, 13, 21, 10, 20]
