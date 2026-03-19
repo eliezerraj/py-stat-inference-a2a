@@ -105,7 +105,7 @@ def get_info():
 
         return settings
 
-@app.get("/.well-known/agent.json")
+@app.get("/.well-known/agent-card.json")
 def agent_card():
     with tracer.start_as_current_span("controller.get_agent_card") as span:
         """Get application agent card information."""

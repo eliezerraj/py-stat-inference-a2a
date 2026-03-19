@@ -2,41 +2,39 @@ from infrastructure.config.config import settings
 
 AGENT_CARD = {
     "name": settings.APP_NAME,
-    "version": settings.VERSION,
-    "url": settings.URL_AGENT,
-    "version": "v1",
-    "protocol": "a2a/1.0",
     "description": "Statistical inference agent (windowed data analysis)",
-    "maintainer": {
-        "contact": "eliezerral@gmail.com",
-        "organization": "MLOps"
+    "version": settings.VERSION,
+    "provider": {
+        "organization": "eliezer-junior Org.",
+        "url": settings.URL_AGENT,
     },
-    "capabilities": [
+    "documentationUrl": f"{settings.URL_AGENT}/info",
+    "supportedInterfaces": [
         {
-            "intent": "STATISTICAL_ANALYSIS",
-            "consumes": ["COMPUTE_STAT"],
-            "produces": ["COMPUTE_STAT_RESULT"],
-            "input_modes": ["application/json"],
-            "output_modes": ["application/json"],
-            "schema": {
-                "type": "object",
-                "properties": { 
-                    "data": { "type": "array" , "items": { "type": "number" },
-                    },
-                },
-                "required": ["data"]
-            },
-        },
+            "url": f"{settings.URL_AGENT}/a2a/message",
+            "protocolBinding": "HTTP+JSON",
+            "protocolVersion": "1.0",
+        }
     ],
-    "skills": {
-        "compute_statistic": "Compute all statistics from a given array of values",
+    "capabilities": {
+        "streaming": False,
+        "pushNotifications": False,
+        "stateTransitionHistory": False,
+        "extendedAgentCard": False,
     },
-    "endpoints": {
-        "message": "/a2a/message",
-        "health": "/info",
-    },
-    "security": {
-        "type": "none", 
-        "description": "Localhost testing mode"
-    }
+    "defaultInputModes": ["application/json"],
+    "defaultOutputModes": ["application/json"],
+    "skills": [
+        {
+            "id": "COMPUTE_STAT",
+            "name": "Compute Statistics",
+            "description": "Computes descriptive statistics and trend metrics from an input numeric array.",
+            "tags": ["statistics", "analytics", "timeseries"],
+            "examples": [
+                '{"data": [10, 11, 12, 13.5]}'
+            ],
+            "inputModes": ["application/json"],
+            "outputModes": ["application/json"],
+        }
+    ],
 }
