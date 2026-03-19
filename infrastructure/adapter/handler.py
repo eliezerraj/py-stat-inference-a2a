@@ -13,7 +13,6 @@ from opentelemetry import trace
 tracer = trace.get_tracer(__name__)
 logger = logging.getLogger(__name__)
 
-
 def _validate_payload(payload: dict) -> StatRequest:
     try:
         if hasattr(StatRequest, "model_validate"):
@@ -28,7 +27,7 @@ def _validate_payload(payload: dict) -> StatRequest:
 
 # Initialize Stat Service
 def handler_compute_stat(payload: dict) -> dict:
-    with tracer.start_as_current_span("infrastructure.adapter.handler_compute_stat"):
+    with tracer.start_as_current_span("infrastructure.adapter.handler_compute_stat") as span:
         logger.info("def.handler_compute_stat()")  
 
         stat_request = _validate_payload(payload)

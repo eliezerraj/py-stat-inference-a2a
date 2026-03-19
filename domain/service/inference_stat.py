@@ -23,8 +23,9 @@ def calc_slope(tps):
 # window size
 def calc_normalized_slope(tps):
     slope = calc_slope(tps)
-    return slope / (np.mean(tps) + 1e-6)
+    return slope #/ (np.mean(tps) + 1e-6)
 
+# Fano factor: variance-to-mean ratio, useful for count data to assess dispersion
 def calc_fano_factor(tps):
     if tps.size < 2:
         return 0.0
@@ -36,7 +37,7 @@ def calc_fano_factor(tps):
     variance = np.var(tps, ddof=1)
     return variance / (mean + 1e-6)
 
-
+# Median Absolute Deviation (MAD): robust measure of variability, less sensitive to outliers than standard deviation
 def calc_median_absolute_deviation(tps):
     median = np.median(tps)
     return float(np.median(np.abs(tps - median)))
@@ -66,7 +67,6 @@ def compute_stat(list_values: list[float]) -> Stat:
             stddev = 0.0
 
         data_stat = Stat()
-
         data_stat.fano_factor = float(calc_fano_factor(tps_values))
 
         logger.debug(
@@ -94,7 +94,7 @@ def compute_stat(list_values: list[float]) -> Stat:
 
         data_stat.range = float(np.max(tps_values) - np.min(tps_values))
         data_stat.p95 = float(np.percentile(tps_values, 95))
-        data_stat.mad = calc_median_absolute_deviation(tps_values)
+        data_stat.median_abs_deviation = calc_median_absolute_deviation(tps_values)
 
         # Normalized slope: guarded for small arrays and non-finite results
         if n > 1:
@@ -107,6 +107,7 @@ def compute_stat(list_values: list[float]) -> Stat:
                 n_slope = 0.0
         else:
             n_slope = 0.0
+
         data_stat.n_slope = n_slope
 
         # Autocorrelation: guarded and coerced to finite float
@@ -119,8 +120,8 @@ def compute_stat(list_values: list[float]) -> Stat:
                 autocorr = 0.0
         else:
             autocorr = 0.0
+
         data_stat.autocorr = autocorr
-    
         data_stat.min = float(np.min(tps_values))
         data_stat.max = float(np.max(tps_values))
         data_stat.sum = float(np.sum(tps_values))

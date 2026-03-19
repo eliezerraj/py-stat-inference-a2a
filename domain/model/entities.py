@@ -3,7 +3,6 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-
 class StatRequest(BaseModel):
     data: list[float] = Field(min_length=1)
 
@@ -19,7 +18,7 @@ class Stat(BaseModel):
 
     range: Optional[float] = None
     p95: Optional[float] = None
-    mad: Optional[float] = None
+    median_abs_deviation: Optional[float] = None
     n_slope: Optional[float] = None
     autocorr: Optional[float] = None
     fano_factor: Optional[float] = None

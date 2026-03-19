@@ -21,6 +21,11 @@ class StatInferenceTests(unittest.TestCase):
 
         self.assertEqual(result.mad, 0.0)
 
+    def test_n_slope_is_rounded_to_five_decimals(self):
+        result = compute_stat([1.0, 1.0001, 1.0002])
+
+        self.assertEqual(result.n_slope, 0.0001)
+
     def test_handler_rejects_empty_payload(self):
         with self.assertRaises(A2ARequestError):
             handler_compute_stat({})
