@@ -30,8 +30,18 @@ AGENT_CARD = {
             "name": "Compute Statistics",
             "description": "Computes descriptive statistics and trend metrics from an input numeric array.",
             "tags": ["statistics", "analytics", "timeseries"],
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": { "type": "number" }
+                    }
+                },
+                "required": ["data"]
+            },
             "examples": [
-                '{"data": [10, 11, 12, 13.5]}'
+                {"data": [10.4, 11.0, 12.0, 13.5]}
             ],
             "inputModes": ["application/json"],
             "outputModes": ["application/json"],
