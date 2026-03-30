@@ -14,16 +14,16 @@ logger = logging.getLogger(__name__)
 #---------------------------------
 # Compute Statistical Metrics
 #---------------------------------
-# Calculate slope of the time series data Linear regression to find the slope of the data points
+# Calculate absolute slope
 def calc_slope(tps):
     x = np.arange(len(tps))
     slope, _ = np.polyfit(x, tps, 1)
     return slope
 
-# window size
+# Calculate normalized slope (percentage change relative to mean)
 def calc_normalized_slope(tps):
     slope = calc_slope(tps)
-    return slope #/ (np.mean(tps) + 1e-6)
+    return slope / (np.mean(tps) + 1e-6)
 
 # Fano factor: variance-to-mean ratio, useful for count data to assess dispersion
 def calc_fano_factor(tps):
@@ -35,7 +35,7 @@ def calc_fano_factor(tps):
         return 0.0
 
     variance = np.var(tps, ddof=1)
-    return variance / (mean + 1e-6)
+    return variance / (mean + 1e-6) #add small constant to avoid division by zero
 
 # Median Absolute Deviation (MAD): robust measure of variability, less sensitive to outliers than standard deviation
 def calc_median_absolute_deviation(tps):
@@ -99,6 +99,7 @@ def compute_stat(list_values: list[float]) -> Stat:
         # Normalized slope: guarded for small arrays and non-finite results
         if n > 1:
             try:
+                slope = calc_slope(tps_values)
                 n_slope = calc_normalized_slope(tps_values)
                 n_slope = float(n_slope)
                 if not np.isfinite(n_slope):
@@ -108,6 +109,7 @@ def compute_stat(list_values: list[float]) -> Stat:
         else:
             n_slope = 0.0
 
+        data_stat.slope = slope
         data_stat.n_slope = n_slope
 
         # Autocorrelation: guarded and coerced to finite float
