@@ -1,12 +1,12 @@
 # py-stat-inference-a2a
 
-py-stat-inference-a2a
+py-stat-inference-a2a is a a2a agent to compute statistics from a given arrays of numbers.
 
-# Features
+### Features
 
 ### Range
 It answers:
-“How far did the tps swing between best and worst case?”
+“How far did the swing between best and worst case?”
 
     Example
     A = [9, 9, 9, 9, 9]
@@ -17,7 +17,7 @@ It answers:
 
 ### P95
 It answers:
-“What TPS do we hit most of the time when stressed?”
+“What the figure do we hit most of the time when stressed?”
 
     Example
     A = [8, 8, 8, 8, 8]
@@ -35,7 +35,7 @@ It answers:
 
 ### MAD
 it answers:
-“On average, how far is TPS from its typical value?”
+“On average, how far is from its typical value?”
 
     Two TPS windows:
     W1 = [8, 8, 8, 8, 8]
@@ -55,14 +55,15 @@ it answers:
     W2 = smooth
     W3 = bursty
 
-    This matches real TPS semantics.
+    This matches real semantics.
 
     STD overreacts to one burst.
     MAD reflects typical deviation, not rare spikes.
 
 ### N_SLOPE
 
-It answers: “How fast is TPS changing relative to its level?”
+It answers: 
+“How fast is changing relative to its level?”
 
     Example
     TPS = [8, 9, 10, 11, 12]
@@ -73,9 +74,22 @@ It answers: “How fast is TPS changing relative to its level?”
     Interpretation:
     TPS grows ~10% per step
 
+### SLOPE
+
+It answers: 
+“How fast is changing for each step?”
+
+    Example
+    TPS = [8, 9, 10, 11, 12]
+    slope = 1
+
+    Interpretation:
+    The diference grows 1 per step
+
 ### FANO FACTOR
 
-It answers: “Regardless of size, how erratic is the behavior ?”
+It answers: 
+“Regardless of size, how erratic is the behavior ?”
 
     Example
     TPS = [19, 12, 13, 21, 10, 20]
@@ -88,16 +102,15 @@ It answers: “Regardless of size, how erratic is the behavior ?”
 ### AUTO_CORRELATION
 
 It answers:
-
-“If TPS is high now, will it stay high next step?”
+“If it is high now, will it stay high next step?”
 
     Example patterns
 
-    Smooth throttling
+    Smooth
     [9, 9, 10, 10, 10]
     autocorr ≈ 0.9
 
-    Bursty traffic
+    Bursty
     [8, 15, 8, 15, 8]
     autocorr ≈ 0
 
@@ -105,41 +118,38 @@ It answers:
     [8, 14, 8, 14, 8]
     autocorr < 0
 
-
-## Diagram
-
-# create venv
+### create venv
 
     python3 -m venv .venv
 
-# activate
+### activate
 
     source .venv/bin/activate
 
-# install requirements
+### install requirements
 
     pip install -r requirements.txt
 
-# run (root)
+### run (root)
 
     uvicorn main:app --host 0.0.0.0 --port 8000 --no-access-log --log-level debug
 
-## test Local
+### test Local
 
     export VERSION=0.1
     export ACCOUNT=aws:999999999
     export APP_NAME=py-stat-inference-a2a.localhost
-    export HOST=127.0.0.1 
-    export URL_AGENT=http://127.0.0.1:8000     
-    export PORT=8000
+    export HOST=127.0.0.1
+    export PORT=8100
+    export URL_AGENT=http://$(HOST):$(PORT)
     export WINDOW_SIZE=30
     export SESSION_TIMEOUT=3000
-    export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces
-    export LOG_LEVEL=DEBUG 
+    export OTEL_EXPORTER_OTLP_ENDPOINT=http://pi-home-01.architecture.caradhras.io:4318/v1/traces
+    export LOG_LEVEL=INFO
     export OTEL_STDOUT_LOG_GROUP=True
     export LOG_GROUP=/mnt/c/Eliezer/log/py-stat-inference-a2a.log
 
-## Endpoint    
+### Endpoint    
 
     curl --location 'http://localhost:8000/.well-known/agent.json'
 
