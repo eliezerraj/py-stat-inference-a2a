@@ -5,7 +5,7 @@ AGENT_CARD = {
     "description": "Statistical inference agent (windowed data analysis)",
     "version": settings.VERSION,
     "provider": {
-        "organization": "eliezer-junior Org.",
+        "organization": "eliezer-junior",
         "url": settings.URL_AGENT,
     },
     "documentationUrl": f"{settings.URL_AGENT}/info",
@@ -35,7 +35,7 @@ AGENT_CARD = {
                 "properties": {
                     "data": {
                         "type": "array",
-                        "items": { "type": "number" }
+                        "items": { "type": "number" , "description": "Numeric value for analysis" }
                     }
                 },
                 "required": ["data"]
